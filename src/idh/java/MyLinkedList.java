@@ -1,5 +1,7 @@
 package idh.java;
 
+import java.util.NoSuchElementException;
+
 /**
  * Diese Klasse beschriebt eine String-Liste (Datenstruktur), in die beliebig
  * viele Strings eingefügt und wieder gelöscht werden können. Die Klasse soll
@@ -11,22 +13,9 @@ package idh.java;
  * @author bkis
  *
  */
-public class StringList {
+public class MyLinkedList<T> {
 
-	private String[] data; // das String-Array, das intern benutzt wird
-	private int nextInsertPosition; // die nächste freie, beschreibbare Stelle des Arrays
-
-	/**
-	 * Ein Konstruktor, dem man die gewünschte initiale Größe des internen Arrays
-	 * übergeben kann (falls man z.B. schon weiß, dass man bis zu n Elemente
-	 * einfügen möchte.
-	 * 
-	 * @param initialSize
-	 */
-	public StringList(int initialSize) {
-		this.data = new String[initialSize];
-		this.nextInsertPosition = 0;
-	}
+	ListElement first = null;
 
 	/**
 	 * Ein Konstruktor, dem man ein bereits bestehendes String-Array übergeben kann,
@@ -34,9 +23,7 @@ public class StringList {
 	 * 
 	 * @param initialArray
 	 */
-	public StringList(String[] initialArray) {
-		this.data = initialArray;
-		this.nextInsertPosition = initialArray.length;
+	public MyLinkedList(T[] initialArray) {
 	}
 
 	/**
@@ -44,8 +31,7 @@ public class StringList {
 	 * festgelegte Anfangs-Länge des Arrays verwendet, indem ein anderer Konstruktor
 	 * mit dem entsprechenden Wert aufgerufen wird.
 	 */
-	public StringList() {
-		this(10); // das Array soll zu Beginn die Länge 10 haben
+	public MyLinkedList() {
 	}
 
 	/**
@@ -53,11 +39,16 @@ public class StringList {
 	 * 
 	 * @param s Der String, der hinzugefügt werden soll
 	 */
-	public void add(String s) {
-		if (full())
-			grow(); // überprüfen, ob Platz ist; wenn nicht, vergrößern (s.u.)
-		data[nextInsertPosition] = s; // den übergebenen String an die nächste freie Stelle schreiben
-		nextInsertPosition++; // den Wert für die nächste freie Stelle um 1 erhöhen
+	public void add(T s) {
+		if (first == null) {
+			first = new ListElement(s);
+		} else {
+			ListElement current = first;
+			while(current.next != null) {
+				current = current.next;
+			}
+			current.next = new ListElement(s);
+		}
 	}
 
 	/**
@@ -66,11 +57,17 @@ public class StringList {
 	 * @param index Index des zu ersetzenden Elements
 	 * @param s     String, durch den ersetzt werden soll
 	 */
-	public void set(int index, String s) {
-		if (isIndexValid(index))
-			data[index] = s;
-		else {
-			System.err.println("Invalid index.");
+	public void set(int index, T s) {
+		if (first == null) {
+			throw new NoSuchElementException();
+		} else {
+			ListElement current = first;
+			while(current.next != null && index > 0) {
+				current = current.next;
+				index--;
+			}
+			if (index == 0)
+				current.value = s;
 		}
 	}
 
@@ -89,7 +86,7 @@ public class StringList {
 	 * 
 	 * @param toRemove Der String, der entfernt werden soll
 	 */
-	public void remove(String toRemove) {
+	public void remove(T toRemove) {
 		// TODO: implementieren!
 	}
 
@@ -112,7 +109,7 @@ public class StringList {
 	 * @param s String, dessen Index gesucht werden soll
 	 * @return Index des gesuchten Strings, oder -1 wenn String nicht enthalten ist.
 	 */
-	public int indexOf(String s) {
+	public int indexOf(T s) {
 //		for (int i = 0; i < data.length; i++) {
 //			String irgendwas = data[i];
 //		}
@@ -132,7 +129,7 @@ public class StringList {
 	 * @param index Index des Strings, der zurückgegeben werden soll
 	 * @return Der String, der zurückgegeben werden soll
 	 */
-	public String get(int index) {
+	public T get(int index) {
 		if (isIndexValid(index)) {
 			return data[index];
 		} else {
@@ -168,7 +165,7 @@ public class StringList {
 	 */
 	public void reverseList() {
 		// String[] newArray = new String[this.nextInsertPosition];
-		String[] newArray = new String[this.data.length];
+		T[] newArray = (T[]) new Object[this.data.length];
 		// int j = 0;
 		for (int i = data.length - 1; i > 0; i--) {
 			newArray[data.length - i] = data[i];
@@ -185,7 +182,7 @@ public class StringList {
 	 * @param end   End-Index der Teil-Liste + 1
 	 * @return
 	 */
-	public StringList getSubList(int start, int end) {
+	public MyLinkedList getSubList(int start, int end) {
 		// TODO: implementieren!
 		return null;
 	}
@@ -198,41 +195,31 @@ public class StringList {
 	public int size() {
 		return this.nextInsertPosition;
 	}
-
-	/*
-	 * Eine Methode zur internen Verwendung (daher private), die überprüft, ob ein
-	 * index überhaupt gültig ist
-	 */
-	private boolean isIndexValid(int index) {
-		return index < nextInsertPosition;
-	}
-
-	/*
-	 * Eine Methode zur internen Verwendung (daher private), die überprüft, ob das
-	 * interne Array bereits "voll" ist, oder ob noch Platz für weitere Elemente zur
-	 * Verfügung steht.
-	 */
-	private boolean full() {
-		return data.length <= nextInsertPosition;
-	}
-
-	/*
-	 * Eine Methode zur internen Verwendung (daher private), die das interne Array
-	 * "vergrößert", bzw. (weil das ja nicht geht) ein neues, größeres Array
-	 * erzeugt, die Elemente hereinkopiert und der entsprechenden Klassenvariable
-	 * die Referenz auf dieses neue Array zuweist.
-	 */
-	private void grow() {
-		// neues Array mit bisheriger Länge + 10
-		String[] temp = new String[data.length + 10];
-
-		// alle Elemente ins neue Array kopieren
-		for (int i = 0; i < data.length; i++) {
-			temp[i] = data[i];
+	
+	private ListElement last() {
+		ListElement current = first;
+		while(current.next != null) {
+			current = current.next;
 		}
-
-		// neues Array als intern verwendetes Array festlegen
-		this.data = temp;
+		return current;
+	}
+	
+	class ListElement {
+		T value;
+		ListElement next;
+		
+		public ListElement(T value) {
+			this.value = value;
+		}
+	}
+	
+	public static void main(String[] args) {
+		MyLinkedList<String> ml1 = new MyLinkedList<String>();
+		ml1.add("Hello");
+		ml1.print();
+		MyLinkedList<Student> ml2 = new MyLinkedList<Student>();
+		ml2.add(new Student("Maria Müller"));
+		ml2.print();
 	}
 
 }
