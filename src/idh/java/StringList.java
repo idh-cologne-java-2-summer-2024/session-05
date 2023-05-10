@@ -11,9 +11,9 @@ package idh.java;
  * @author bkis
  *
  */
-public class MyList<T> {
+public class StringList {
 
-	private T[] data; // das String-Array, das intern benutzt wird
+	private String[] data; // das String-Array, das intern benutzt wird
 	private int nextInsertPosition; // die nächste freie, beschreibbare Stelle des Arrays
 
 	/**
@@ -23,10 +23,17 @@ public class MyList<T> {
 	 * 
 	 * @param initialSize
 	 */
-	public MyList(int initialSize) {
-		this.data = (T[]) new Object[initialSize];
+	public StringList(int initialSize) {
+		this.data = new String[initialSize];
 		this.nextInsertPosition = 0;
 	}
+	
+	public StringList() {
+		this.data = new String[10];
+		this.nextInsertPosition = 0;
+		
+	}
+	
 
 	/**
 	 * Ein Konstruktor, dem man ein bereits bestehendes String-Array übergeben kann,
@@ -34,18 +41,9 @@ public class MyList<T> {
 	 * 
 	 * @param initialArray
 	 */
-	public MyList(T[] initialArray) {
+	public StringList(String[] initialArray) {
 		this.data = initialArray;
 		this.nextInsertPosition = initialArray.length;
-	}
-
-	/**
-	 * Ein Konstruktor, der ganz ohne Argumente auskommt. Hier wird einfach eine
-	 * festgelegte Anfangs-Länge des Arrays verwendet, indem ein anderer Konstruktor
-	 * mit dem entsprechenden Wert aufgerufen wird.
-	 */
-	public MyList() {
-		this(10); // das Array soll zu Beginn die Länge 10 haben
 	}
 
 	/**
@@ -53,7 +51,7 @@ public class MyList<T> {
 	 * 
 	 * @param s Der String, der hinzugefügt werden soll
 	 */
-	public void add(T s) {
+	public void add(String s) {
 		if (full())
 			grow(); // überprüfen, ob Platz ist; wenn nicht, vergrößern (s.u.)
 		data[nextInsertPosition] = s; // den übergebenen String an die nächste freie Stelle schreiben
@@ -65,15 +63,17 @@ public class MyList<T> {
 	 * 
 	 * @param index Index des zu ersetzenden Elements
 	 * @param s     String, durch den ersetzt werden soll
+	 * @throws Exception 
 	 */
-	public void set(int index, T s) {
+	public void set(int index, String s) throws Exception {
 		if (isIndexValid(index))
 			data[index] = s;
 		else {
-			System.err.println("Invalid index.");
+			throw new Exception("Invalid index");
 		}
 	}
 
+	
 	/**
 	 * Diese Methode entfernt einen String aus der Liste. Hierbei sollen keine
 	 * Lücken im internen Array entstehen! Es kann natürlich sein, dass es mehrere
@@ -89,8 +89,17 @@ public class MyList<T> {
 	 * 
 	 * @param toRemove Der String, der entfernt werden soll
 	 */
-	public void remove(T toRemove) {
-		// TODO: implementieren!
+	public void remove(String toRemove) {
+		for (int i = 0; i < this.data.length; i++) {
+			// we identify the position that needs to be removed
+			if (data[i].equals(toRemove)) {
+				// ... and let our other function handle the rest
+				remove(i);
+				// ensures that we only remove the string once, even if the list 
+				// contains it multiple times.
+				break;
+			}
+		}
 	}
 
 	/**
@@ -100,7 +109,13 @@ public class MyList<T> {
 	 * @param index
 	 */
 	public void remove(int index) {
-		// TODO: implementieren!
+		// we start the for-loop at the element we want to remove
+		for (int i = index; i < this.data.length-1; i++) {
+			// we overwrite each element with its successor
+			data[i] = data[i+1];
+		}
+		// we reduce the next position by one
+		nextInsertPosition--;
 	}
 
 	/**
@@ -112,11 +127,7 @@ public class MyList<T> {
 	 * @param s String, dessen Index gesucht werden soll
 	 * @return Index des gesuchten Strings, oder -1 wenn String nicht enthalten ist.
 	 */
-	public int indexOf(T s) {
-//		for (int i = 0; i < data.length; i++) {
-//			String irgendwas = data[i];
-//		}
-
+	public int indexOf(String s) {
 		for (int i = 0; i < data.length; i++) {
 			// for (String irgendwas : data) {
 			if (s.equals(data[i])) {
@@ -132,7 +143,7 @@ public class MyList<T> {
 	 * @param index Index des Strings, der zurückgegeben werden soll
 	 * @return Der String, der zurückgegeben werden soll
 	 */
-	public T get(int index) {
+	public String get(int index) {
 		if (isIndexValid(index)) {
 			return data[index];
 		} else {
@@ -163,19 +174,6 @@ public class MyList<T> {
 		System.out.println(sb.toString());
 	}
 
-	/**
-	 * Kehrt die gesamte Liste um (Reihenfolge der Strings)
-	 */
-	public void reverseList() {
-		// String[] newArray = new String[this.nextInsertPosition];
-		T[] newArray = (T[]) new Object[this.data.length];
-		// int j = 0;
-		for (int i = data.length - 1; i > 0; i--) {
-			newArray[data.length - i] = data[i];
-			// j++;
-		}
-		// TODO: implementieren!
-	}
 
 	/**
 	 * Gibt eine neue Instanz von StringList mit den Elementen von "start" bis "end"
@@ -185,9 +183,12 @@ public class MyList<T> {
 	 * @param end   End-Index der Teil-Liste + 1
 	 * @return
 	 */
-	public MyList getSubList(int start, int end) {
-		// TODO: implementieren!
-		return null;
+	public StringList getSubList(int start, int end) {
+		StringList newList = new StringList(end-start);
+		for (int i = start; i < end; i++) {
+			newList.add(data[i]);
+		}
+		return newList;
 	}
 
 	/**
@@ -224,7 +225,7 @@ public class MyList<T> {
 	 */
 	private void grow() {
 		// neues Array mit bisheriger Länge + 10
-		T[] temp = (T[]) new Object[data.length + 100];
+		String[] temp = new String[data.length + 10];
 
 		// alle Elemente ins neue Array kopieren
 		for (int i = 0; i < data.length; i++) {
@@ -233,15 +234,6 @@ public class MyList<T> {
 
 		// neues Array als intern verwendetes Array festlegen
 		this.data = temp;
-	}
-	
-	public static void main(String[] args) {
-		MyList<String> ml1 = new MyList<String>();
-		ml1.add("Hello");
-		ml1.print();
-		MyList<Student> ml2 = new MyList<Student>();
-		ml2.add(new Student("Maria Müller"));
-		ml2.print();
 	}
 
 }
