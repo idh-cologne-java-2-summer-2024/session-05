@@ -1,6 +1,6 @@
 package idh.java;
 
-public class Student extends Object {
+public class Student {
 	String name;
 
 	public String getName() {
